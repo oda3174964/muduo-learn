@@ -42,10 +42,12 @@ class Poller : noncopyable
 
   /// Changes the interested I/O events.
   /// Must be called in the loop thread.
+  /* 更新监听事件，增删改对fd的监听事件 */
   virtual void updateChannel(Channel* channel) = 0;
 
   /// Remove the channel, when it destructs.
   /// Must be called in the loop thread.
+  /* 删除监听事件 */
   virtual void removeChannel(Channel* channel) = 0;
 
   virtual bool hasChannel(Channel* channel) const;
@@ -59,7 +61,7 @@ class Poller : noncopyable
 
  protected:
   typedef std::map<int, Channel*> ChannelMap;
-  ChannelMap channels_;
+  ChannelMap channels_;//保存所有事件Channel
 
  private:
   EventLoop* ownerLoop_;

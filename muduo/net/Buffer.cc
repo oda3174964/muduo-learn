@@ -46,6 +46,7 @@ ssize_t Buffer::readFd(int fd, int* savedErrno)
   }
   else
   {
+      //把extrabuf数据添加到buffer里面
     writerIndex_ = buffer_.size();
     append(extrabuf, n - writable);
   }

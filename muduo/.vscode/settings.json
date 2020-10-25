@@ -7,6 +7,13 @@
         "set": "cpp",
         "string": "cpp",
         "unordered_map": "cpp",
-        "vector": "cpp"
+        "vector": "cpp",
+        "istream": "cpp",
+        "ios": "cpp",
+        "tuple": "cpp",
+        "algorithm": "cpp",
+        "bitset": "cpp",
+        "memory": "cpp",
+        "optional": "cpp"
     }
 }

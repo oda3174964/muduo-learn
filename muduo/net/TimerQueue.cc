@@ -132,10 +132,12 @@ void TimerQueue::cancel(TimerId timerId)
 void TimerQueue::addTimerInLoop(Timer* timer)
 {
   loop_->assertInLoopThread();
+  //插入定时器
   bool earliestChanged = insert(timer);
 
   if (earliestChanged)
   {
+      //如果插入的定时器的时间比较早的话，需要重新设置定时器超时时间
     resetTimerfd(timerfd_, timer->expiration());
   }
 }
@@ -237,18 +239,25 @@ bool TimerQueue::insert(Timer* timer)
   loop_->assertInLoopThread();
   assert(timers_.size() == activeTimers_.size());
   bool earliestChanged = false;
+  /* 获取timer的UTC时间戳，和timer组成std::pair<Timestamp, Timer*> */
   Timestamp when = timer->expiration();
+
+  /* timers_begin()是set顶层元素（红黑树根节点），是超时时间最近的Timer* */
   TimerList::iterator it = timers_.begin();
+
+  /* 如果要添加的timer的超时时间比timers_中的超时时间近，更改新的超时时间 */
   if (it == timers_.end() || when < it->first)
   {
     earliestChanged = true;
   }
   {
+      /* 添加到定时任务的set中 */
     std::pair<TimerList::iterator, bool> result
       = timers_.insert(Entry(when, timer));
     assert(result.second); (void)result;
   }
   {
+      /* 同时也添加到activeTimers_中，用于删除时查找操作 */
     std::pair<ActiveTimerSet::iterator, bool> result
       = activeTimers_.insert(ActiveTimer(timer, timer->sequence()));
     assert(result.second); (void)result;

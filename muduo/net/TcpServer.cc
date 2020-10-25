@@ -41,6 +41,7 @@ TcpServer::~TcpServer()
   loop_->assertInLoopThread();
   LOG_TRACE << "TcpServer::~TcpServer [" << name_ << "] destructing";
 
+//server析构的时候，所有连接都要断开销毁
   for (auto& item : connections_)
   {
     TcpConnectionPtr conn(item.second);
@@ -52,14 +53,17 @@ TcpServer::~TcpServer()
 
 void TcpServer::setThreadNum(int numThreads)
 {
+    //设置线程池的数量
   assert(0 <= numThreads);
   threadPool_->setThreadNum(numThreads);
 }
 
 void TcpServer::start()
 {
+    //开始只会调用一次
   if (started_.getAndSet(1) == 0)
   {
+      //线程池开启
     threadPool_->start(threadInitCallback_);
 
     assert(!acceptor_->listening());

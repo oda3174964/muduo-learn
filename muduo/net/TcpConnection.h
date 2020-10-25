@@ -126,7 +126,7 @@ class TcpConnection : noncopyable,
   void shutdownInLoop();
   // void shutdownAndForceCloseInLoop(double seconds);
   void forceCloseInLoop();
-  void setState(StateE s) { state_ = s; }
+  void setState(StateE s) { state_ = s; } //设置连接状态
   const char* stateToString() const;
   void startReadInLoop();
   void stopReadInLoop();

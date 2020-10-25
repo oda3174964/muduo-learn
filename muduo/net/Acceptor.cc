@@ -57,7 +57,7 @@ void Acceptor::handleRead()
 {
     //监听的socket发生读事件的时候进行的回调
   loop_->assertInLoopThread();
-  InetAddress peerAddr;
+  InetAddress peerAddr; //远端地址
   //FIXME loop until no more
   int connfd = acceptSocket_.accept(&peerAddr);//获取连接的文件描述符
   if (connfd >= 0)

@@ -137,27 +137,39 @@ class EventLoop : noncopyable
 
   typedef std::vector<Channel*> ChannelList;
 
-  bool looping_; /* atomic */
-  std::atomic<bool> quit_;
+  bool looping_; /* atomic */ //是否正在事件循环
+  std::atomic<bool> quit_; //退出标志，原子变量
   bool eventHandling_; /* atomic */
   bool callingPendingFunctors_; /* atomic */
   int64_t iteration_;
-  const pid_t threadId_;
+  const pid_t threadId_; //线程id
+  /* poll返回的时间，用于计算从激活到调用回调函数的延迟 */
   Timestamp pollReturnTime_;
-  std::unique_ptr<Poller> poller_;
-  std::unique_ptr<TimerQueue> timerQueue_;
-  int wakeupFd_;
+  std::unique_ptr<Poller> poller_; /* io多路复用 */
+  std::unique_ptr<TimerQueue> timerQueue_; /* 定时器队列 */
+  int wakeupFd_;  /* 唤醒当前线程的描述符 */
   // unlike in TimerQueue, which is an internal class,
   // we don't expose Channel to client.
+
+  /* 
+   * 用于唤醒当前线程，因为当前线程主要阻塞在poll函数上
+   * 所以唤醒的方法就是手动激活这个wakeupChannel_，即写入几个字节让Channel变为可读
+   * 注: 这个Channel也注册到Poller中
+   */
   std::unique_ptr<Channel> wakeupChannel_;
   boost::any context_;
 
   // scratch variables
+  /* 
+   * 激活队列，poll函数在返回前将所有激活的Channel添加到激活队列中
+   * 在当前事件循环中的所有Channel在Poller中
+   */
   ChannelList activeChannels_;
+  /* 当前执行回调函数的Channel */
   Channel* currentActiveChannel_;
 
-  mutable MutexLock mutex_;
-  std::vector<Functor> pendingFunctors_ GUARDED_BY(mutex_);
+  mutable MutexLock mutex_; //互斥锁
+  std::vector<Functor> pendingFunctors_ GUARDED_BY(mutex_); //当前线程等待执行的回调函数
 };
 
 }  // namespace net

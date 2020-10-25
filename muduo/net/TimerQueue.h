@@ -47,6 +47,7 @@ class TimerQueue : noncopyable
                    Timestamp when,
                    double interval);
 
+    /* 取消定时任务，每个定时任务都有对应的TimerId，这是addTimer返回给调用者的 */
   void cancel(TimerId timerId);
 
  private:
@@ -62,15 +63,21 @@ class TimerQueue : noncopyable
   void addTimerInLoop(Timer* timer);
   void cancelInLoop(TimerId timerId);
   // called when timerfd alarms
+  /* 当timerfd被激活时调用的回调函数，表示超时 */
   void handleRead();
   // move out all expired timers
   std::vector<Entry> getExpired(Timestamp now);
+  /* 将超时任务中周期性的任务重新添加到timers_中 */
   void reset(const std::vector<Entry>& expired, Timestamp now);
 
+    /* 插入到timers_中 */
   bool insert(Timer* timer);
 
+    /* 所属的事件驱动循环 */
   EventLoop* loop_;
+    /* 由timerfd_create创建的文件描述符 */
   const int timerfd_;
+  /* 用于监听timerfd的Channel */
   Channel timerfdChannel_;
   // Timer list sorted by expiration
   TimerList timers_;

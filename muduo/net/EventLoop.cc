@@ -100,6 +100,19 @@ EventLoop::~EventLoop()
   t_loopInThisThread = NULL;
 }
 
+/* 
+ * 事件驱动主循环
+ * 
+ * 1.每个TcpServer对应一个事件驱动循环线程池
+ * 2.每个事件驱动循环线程池对应多个事件驱动循环线程
+ * 3.每个事件驱动循环线程对应一个事件驱动主循环
+ * 4.每个事件驱动主循环对应一个io多路复用函数
+ * 5.每个io多路复用函数监听多个Channel
+ * 6.每个Channel对应一个fd，也就对应一个TcpConnection或者监听套接字
+ * 7.在poll返回后处理激活队列中Channel的过程是同步的，也就是一个一个调用回调函数
+ * 8.调用回调函数的线程和事件驱动主循环所在线程是同一个，也就是同步执行回调函数
+ * 9.线程池用在事件驱动循环上层，也就是事件驱动循环是线程池中的一个线程
+ */
 void EventLoop::loop()
 {
   assert(!looping_);
@@ -110,6 +123,7 @@ void EventLoop::loop()
 
   while (!quit_)
   {
+      //清空激活队列
     activeChannels_.clear();
     pollReturnTime_ = poller_->poll(kPollTimeMs, &activeChannels_);
     ++iteration_;
@@ -118,14 +132,16 @@ void EventLoop::loop()
       printActiveChannels();
     }
     // TODO sort channel by priority
-    eventHandling_ = true;
+    eventHandling_ = true; //事件处理标志
     for (Channel* channel : activeChannels_)
     {
+        /* 执行所有在激活队列中的Channel的回调函数 */
       currentActiveChannel_ = channel;
       currentActiveChannel_->handleEvent(pollReturnTime_);
     }
     currentActiveChannel_ = NULL;
     eventHandling_ = false;
+    /* 执行pendingFunctors_中的所有函数 */
     doPendingFunctors();
   }
 
@@ -157,6 +173,11 @@ void EventLoop::runInLoop(Functor cb)
   }
 }
 
+/*
+ * 由runInLoop调用，也可直接调用，作用
+ * 1.将相应的回调函数存在事件驱动循环的队列中，等待回到自己线程再调用它
+ * 2.激活自己线程的事件驱动循环
+ */
 void EventLoop::queueInLoop(Functor cb)
 {
   {
@@ -176,6 +197,10 @@ size_t EventLoop::queueSize() const
   return pendingFunctors_.size();
 }
 
+/* 
+ * 定时器功能，由用户调用runAt并提供当事件到了执行的回调函数
+ * 时间在Timestamp设置，绝对时间，单位是微秒
+ */
 TimerId EventLoop::runAt(Timestamp time, TimerCallback cb)
 {
   return timerQueue_->addTimer(std::move(cb), time, 0.0);
@@ -231,6 +256,7 @@ void EventLoop::abortNotInLoopThread()
             << ", current thread id = " <<  CurrentThread::tid();
 }
 
+//唤醒wakeupFd_
 void EventLoop::wakeup()
 {
   uint64_t one = 1;
@@ -254,7 +280,7 @@ void EventLoop::handleRead()
 void EventLoop::doPendingFunctors()
 {
   std::vector<Functor> functors;
-  callingPendingFunctors_ = true;
+  callingPendingFunctors_ = true; //执行PendingFunctors_标志设置为true
 
   {
   MutexLockGuard lock(mutex_);
@@ -263,6 +289,7 @@ void EventLoop::doPendingFunctors()
 
   for (const Functor& functor : functors)
   {
+      //依次执行所有函数
     functor();
   }
   callingPendingFunctors_ = false;

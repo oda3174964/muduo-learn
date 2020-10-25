@@ -150,6 +150,7 @@ class Buffer : public muduo::copyable
     retrieve(sizeof(int8_t));
   }
 
+//恢复初始的状态
   void retrieveAll()
   {
     readerIndex_ = kCheapPrepend;
@@ -179,6 +180,7 @@ class Buffer : public muduo::copyable
     append(str.data(), str.size());
   }
 
+//往后面添加数据
   void append(const char* /*restrict*/ data, size_t len)
   {
     ensureWritableBytes(len);
@@ -193,6 +195,7 @@ class Buffer : public muduo::copyable
 
   void ensureWritableBytes(size_t len)
   {
+      //确认buffer的容量够
     if (writableBytes() < len)
     {
       makeSpace(len);
@@ -307,6 +310,7 @@ class Buffer : public muduo::copyable
     return sockets::networkToHost32(be32);
   }
 
+//读取16位的数据
   int16_t peekInt16() const
   {
     assert(readableBytes() >= sizeof(int16_t));
@@ -315,6 +319,7 @@ class Buffer : public muduo::copyable
     return sockets::networkToHost16(be16);
   }
 
+//读取8位数据
   int8_t peekInt8() const
   {
     assert(readableBytes() >= sizeof(int8_t));
@@ -351,6 +356,7 @@ class Buffer : public muduo::copyable
     prepend(&x, sizeof x);
   }
 
+//往前添加数据
   void prepend(const void* /*restrict*/ data, size_t len)
   {
     assert(len <= prependableBytes());
@@ -392,11 +398,13 @@ class Buffer : public muduo::copyable
     if (writableBytes() + prependableBytes() < len + kCheapPrepend)
     {
       // FIXME: move readable data
+      //扩容，vector底层会进行数据的复制
       buffer_.resize(writerIndex_+len);
     }
     else
     {
       // move readable data to the front, make space inside buffer
+      //把数据移到buffer的开头
       assert(kCheapPrepend < readerIndex_);
       size_t readable = readableBytes();
       std::copy(begin()+readerIndex_,

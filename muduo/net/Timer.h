@@ -48,13 +48,13 @@ class Timer : noncopyable
   static int64_t numCreated() { return s_numCreated_.get(); }
 
  private:
-  const TimerCallback callback_;
-  Timestamp expiration_;
-  const double interval_;
-  const bool repeat_;
-  const int64_t sequence_;
+  const TimerCallback callback_;//定时器回调函数
+  Timestamp expiration_; //绝对的时间
+  const double interval_;//如果有重复属性，超时的时间间隔
+  const bool repeat_;//是否有重复
+  const int64_t sequence_;//定时器序号
 
-  static AtomicInt64 s_numCreated_;
+  static AtomicInt64 s_numCreated_;//定时器计数
 };
 
 }  // namespace net

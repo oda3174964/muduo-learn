@@ -55,9 +55,9 @@ class EventLoopThreadPool : noncopyable
  private:
 
   EventLoop* baseLoop_;
-  string name_;
+  string name_;//线程的名字
   bool started_;
-  int numThreads_;
+  int numThreads_; //线程的数目
   int next_;
   std::vector<std::unique_ptr<EventLoopThread>> threads_;
   std::vector<EventLoop*> loops_;

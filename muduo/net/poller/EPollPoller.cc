@@ -52,6 +52,7 @@ EPollPoller::~EPollPoller()
   ::close(epollfd_);
 }
 
+/* epoll_wait返回后将就绪的文件描述符添加到参数的激活队列中 */
 Timestamp EPollPoller::poll(int timeoutMs, ChannelList* activeChannels)
 {
   LOG_TRACE << "fd total count " << channels_.size();
