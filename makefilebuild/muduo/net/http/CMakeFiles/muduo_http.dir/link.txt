@@ -1,0 +1,2 @@
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ar qc ../../../lib/libmuduo_http.a  CMakeFiles/muduo_http.dir/HttpServer.cc.o CMakeFiles/muduo_http.dir/HttpResponse.cc.o CMakeFiles/muduo_http.dir/HttpContext.cc.o
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ranlib ../../../lib/libmuduo_http.a

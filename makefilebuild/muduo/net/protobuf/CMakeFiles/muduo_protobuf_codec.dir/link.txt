@@ -1,0 +1,2 @@
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ar qc ../../../lib/libmuduo_protobuf_codec.a  CMakeFiles/muduo_protobuf_codec.dir/ProtobufCodecLite.cc.o
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ranlib ../../../lib/libmuduo_protobuf_codec.a

@@ -1,0 +1,2 @@
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ar qc ../../lib/libmuduo_pubsub.a  CMakeFiles/muduo_pubsub.dir/pubsub.cc.o CMakeFiles/muduo_pubsub.dir/codec.cc.o
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ranlib ../../lib/libmuduo_pubsub.a
