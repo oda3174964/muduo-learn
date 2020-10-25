@@ -36,7 +36,7 @@ class Acceptor : noncopyable
   ~Acceptor();
 
   void setNewConnectionCallback(const NewConnectionCallback& cb)
-  { newConnectionCallback_ = cb; }
+  { newConnectionCallback_ = cb; } //新连接的回调
 
   void listen();
 
@@ -50,8 +50,8 @@ class Acceptor : noncopyable
   void handleRead();
 
   EventLoop* loop_;
-  Socket acceptSocket_;
-  Channel acceptChannel_;
+  Socket acceptSocket_;//监听的套接字
+  Channel acceptChannel_;//监听的分发器
   NewConnectionCallback newConnectionCallback_;
   bool listening_;
   int idleFd_;

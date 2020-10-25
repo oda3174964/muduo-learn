@@ -94,6 +94,7 @@ void Socket::setTcpNoDelay(bool on)
 
 void Socket::setReuseAddr(bool on)
 {
+    //SO_REUSEADDR是让端口释放后立即就可以被再次使用
   int optval = on ? 1 : 0;
   ::setsockopt(sockfd_, SOL_SOCKET, SO_REUSEADDR,
                &optval, static_cast<socklen_t>(sizeof optval));
@@ -120,6 +121,7 @@ void Socket::setReusePort(bool on)
 
 void Socket::setKeepAlive(bool on)
 {
+    //启用心跳检测
   int optval = on ? 1 : 0;
   ::setsockopt(sockfd_, SOL_SOCKET, SO_KEEPALIVE,
                &optval, static_cast<socklen_t>(sizeof optval));

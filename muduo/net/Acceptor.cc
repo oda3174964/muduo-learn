@@ -30,13 +30,14 @@ Acceptor::Acceptor(EventLoop* loop, const InetAddress& listenAddr, bool reusepor
     idleFd_(::open("/dev/null", O_RDONLY | O_CLOEXEC))
 {
   assert(idleFd_ >= 0);
-  acceptSocket_.setReuseAddr(true);
-  acceptSocket_.setReusePort(reuseport);
-  acceptSocket_.bindAddress(listenAddr);
+  acceptSocket_.setReuseAddr(true);//地址复用
+  acceptSocket_.setReusePort(reuseport);//端口复用
+  acceptSocket_.bindAddress(listenAddr);//监听的端口
   acceptChannel_.setReadCallback(
-      std::bind(&Acceptor::handleRead, this));
+      std::bind(&Acceptor::handleRead, this)); //设置分发器事件发生的回调
 }
 
+//
 Acceptor::~Acceptor()
 {
   acceptChannel_.disableAll();
@@ -49,25 +50,28 @@ void Acceptor::listen()
   loop_->assertInLoopThread();
   listening_ = true;
   acceptSocket_.listen();
-  acceptChannel_.enableReading();
+  acceptChannel_.enableReading();//设置可读，纳入poll管理
 }
 
 void Acceptor::handleRead()
 {
+    //监听的socket发生读事件的时候进行的回调
   loop_->assertInLoopThread();
   InetAddress peerAddr;
   //FIXME loop until no more
-  int connfd = acceptSocket_.accept(&peerAddr);
+  int connfd = acceptSocket_.accept(&peerAddr);//获取连接的文件描述符
   if (connfd >= 0)
   {
     // string hostport = peerAddr.toIpPort();
     // LOG_TRACE << "Accepts of " << hostport;
     if (newConnectionCallback_)
     {
+        //连接回调存在调用
       newConnectionCallback_(connfd, peerAddr);
     }
     else
     {
+        //不存在关闭
       sockets::close(connfd);
     }
   }

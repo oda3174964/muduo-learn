@@ -50,7 +50,7 @@ class InetAddress : public muduo::copyable
     : addr6_(addr)
   { }
 
-  sa_family_t family() const { return addr_.sin_family; }
+  sa_family_t family() const { return addr_.sin_family; } //返回协议族 v4 or v6
   string toIp() const;
   string toIpPort() const;
   uint16_t toPort() const;

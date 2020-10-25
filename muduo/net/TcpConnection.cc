@@ -40,7 +40,7 @@ TcpConnection::TcpConnection(EventLoop* loop,
                              int sockfd,
                              const InetAddress& localAddr,
                              const InetAddress& peerAddr)
-  : loop_(CHECK_NOTNULL(loop)),
+  : loop_(CHECK_NOTNULL(loop)),//连接所属的loop
     name_(nameArg),
     state_(kConnecting),
     reading_(true),

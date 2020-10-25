@@ -105,6 +105,7 @@ void sockets::bindOrDie(int sockfd, const struct sockaddr* addr)
 
 void sockets::listenOrDie(int sockfd)
 {
+    //监听
   int ret = ::listen(sockfd, SOMAXCONN);
   if (ret < 0)
   {
@@ -259,6 +260,7 @@ int sockets::getSocketError(int sockfd)
 
 struct sockaddr_in6 sockets::getLocalAddr(int sockfd)
 {
+    //ipv6有28字节，足够存放
   struct sockaddr_in6 localaddr;
   memZero(&localaddr, sizeof localaddr);
   socklen_t addrlen = static_cast<socklen_t>(sizeof localaddr);

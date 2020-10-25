@@ -70,8 +70,11 @@ void TcpServer::start()
 
 void TcpServer::newConnection(int sockfd, const InetAddress& peerAddr)
 {
+    //acceptor创建连接的时候回调
   loop_->assertInLoopThread();
+  //从线程池获取一个Loop,线程池空的时候返回baseloop
   EventLoop* ioLoop = threadPool_->getNextLoop();
+  //构造连接的名字
   char buf[64];
   snprintf(buf, sizeof buf, "-%s#%d", ipPort_.c_str(), nextConnId_);
   ++nextConnId_;
@@ -80,6 +83,7 @@ void TcpServer::newConnection(int sockfd, const InetAddress& peerAddr)
   LOG_INFO << "TcpServer::newConnection [" << name_
            << "] - new connection [" << connName
            << "] from " << peerAddr.toIpPort();
+           //从描述符获取连接的地址
   InetAddress localAddr(sockets::getLocalAddr(sockfd));
   // FIXME poll with zero timeout to double confirm the new connection
   // FIXME use make_shared if necessary

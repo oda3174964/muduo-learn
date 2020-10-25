@@ -58,6 +58,7 @@ InetAddress::InetAddress(uint16_t port, bool loopbackOnly, bool ipv6)
   static_assert(offsetof(InetAddress, addr_) == 0, "addr_ offset 0");
   if (ipv6)
   {
+      //ipv6
     memZero(&addr6_, sizeof addr6_);
     addr6_.sin6_family = AF_INET6;
     in6_addr ip = loopbackOnly ? in6addr_loopback : in6addr_any;
@@ -66,6 +67,7 @@ InetAddress::InetAddress(uint16_t port, bool loopbackOnly, bool ipv6)
   }
   else
   {
+      //ipv4
     memZero(&addr_, sizeof addr_);
     addr_.sin_family = AF_INET;
     in_addr_t ip = loopbackOnly ? kInaddrLoopback : kInaddrAny;
@@ -122,7 +124,7 @@ bool InetAddress::resolve(StringArg hostname, InetAddress* out)
   struct hostent* he = NULL;
   int herrno = 0;
   memZero(&hent, sizeof(hent));
-
+//解析ip
   int ret = gethostbyname_r(hostname.c_str(), &hent, t_resolveBuffer, sizeof t_resolveBuffer, &he, &herrno);
   if (ret == 0 && he != NULL)
   {
