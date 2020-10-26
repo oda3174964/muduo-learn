@@ -24,22 +24,23 @@ const int Connector::kMaxRetryDelayMs;
 Connector::Connector(EventLoop* loop, const InetAddress& serverAddr)
   : loop_(loop),
     serverAddr_(serverAddr),
-    connect_(false),
-    state_(kDisconnected),
+    connect_(false),   
+    state_(kDisconnected),  //状态默认断开
     retryDelayMs_(kInitRetryDelayMs)
 {
   LOG_DEBUG << "ctor[" << this << "]";
 }
 
+// 连接析构
 Connector::~Connector()
 {
   LOG_DEBUG << "dtor[" << this << "]";
   assert(!channel_);
 }
-
+/* 连接开始 */
 void Connector::start()
 {
-  connect_ = true;
+  connect_ = true;//设置标志
   loop_->runInLoop(std::bind(&Connector::startInLoop, this)); // FIXME: unsafe
 }
 
@@ -77,7 +78,10 @@ void Connector::stopInLoop()
 
 void Connector::connect()
 {
+    // 创建非阻塞的套接字
   int sockfd = sockets::createNonblockingOrDie(serverAddr_.family());
+
+//   调用sockets的connect连接
   int ret = sockets::connect(sockfd, serverAddr_.getSockAddr());
   int savedErrno = (ret == 0) ? 0 : errno;
   switch (savedErrno)
@@ -86,7 +90,7 @@ void Connector::connect()
     case EINPROGRESS:
     case EINTR:
     case EISCONN:
-      connecting(sockfd);
+      connecting(sockfd); //连接成功
       break;
 
     case EAGAIN:
@@ -116,6 +120,7 @@ void Connector::connect()
   }
 }
 
+/* 重新连接 */
 void Connector::restart()
 {
   loop_->assertInLoopThread();
@@ -127,19 +132,24 @@ void Connector::restart()
 
 void Connector::connecting(int sockfd)
 {
-  setState(kConnecting);
+  setState(kConnecting);/* 设置状态 */
   assert(!channel_);
-  channel_.reset(new Channel(loop_, sockfd));
+  channel_.reset(new Channel(loop_, sockfd)); //创建分发器
+//   设置分发器的写回调
   channel_->setWriteCallback(
       std::bind(&Connector::handleWrite, this)); // FIXME: unsafe
+
+    //   设置分发器的错误回调
   channel_->setErrorCallback(
       std::bind(&Connector::handleError, this)); // FIXME: unsafe
 
   // channel_->tie(shared_from_this()); is not working,
   // as channel_ is not managed by shared_ptr
+  //设置可写
   channel_->enableWriting();
 }
 
+// 重置分发器
 int Connector::removeAndResetChannel()
 {
   channel_->disableAll();
@@ -161,7 +171,9 @@ void Connector::handleWrite()
 
   if (state_ == kConnecting)
   {
+      // 从poller中移除关注，并将channel置空
     int sockfd = removeAndResetChannel();
+    // socket可写并不意味着连接一定建立成功
     int err = sockets::getSocketError(sockfd);
     if (err)
     {
@@ -176,9 +188,11 @@ void Connector::handleWrite()
     }
     else
     {
+        // 连接成功
       setState(kConnected);
       if (connect_)
       {
+        //  调用回调函数
         newConnectionCallback_(sockfd);
       }
       else
@@ -206,6 +220,7 @@ void Connector::handleError()
   }
 }
 
+// 重连
 void Connector::retry(int sockfd)
 {
   sockets::close(sockfd);
