@@ -187,6 +187,7 @@ void EventLoop::queueInLoop(Functor cb)
 
   if (!isInLoopThread() || callingPendingFunctors_)
   {
+    //   唤醒处理回调
     wakeup();
   }
 }

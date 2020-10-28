@@ -43,19 +43,21 @@ Channel::~Channel()
     assert(!loop_->hasChannel(this));
   }
 }
-
+// 关联TcpConnection
 void Channel::tie(const std::shared_ptr<void>& obj)
 {
   tie_ = obj;
   tied_ = true;
 }
 
+// 执行更新
 void Channel::update()
 {
   addedToLoop_ = true;
   loop_->updateChannel(this);
 }
 
+// 分发器移除
 void Channel::remove()
 {
   assert(isNoneEvent());
@@ -68,7 +70,7 @@ void Channel::handleEvent(Timestamp receiveTime)
   std::shared_ptr<void> guard;
   if (tied_)
   {
-    guard = tie_.lock();
+    guard = tie_.lock(); // 不存在返回空
     if (guard)
     {
       handleEventWithGuard(receiveTime);
@@ -90,14 +92,17 @@ void Channel::handleEventWithGuard(Timestamp receiveTime)
     {
       LOG_WARN << "fd = " << fd_ << " Channel::handle_event() POLLHUP";
     }
+    // 对方描述符挂起 关闭
     if (closeCallback_) closeCallback_();
   }
 
+// 描述字不是一个打开的文件
   if (revents_ & POLLNVAL)
   {
     LOG_WARN << "fd = " << fd_ << " Channel::handle_event() POLLNVAL";
   }
 
+// 发生错误
   if (revents_ & (POLLERR | POLLNVAL))
   {
     if (errorCallback_) errorCallback_();
@@ -113,6 +118,7 @@ void Channel::handleEventWithGuard(Timestamp receiveTime)
   eventHandling_ = false;
 }
 
+// 类型转为换字符串
 string Channel::reventsToString() const
 {
   return eventsToString(fd_, revents_);

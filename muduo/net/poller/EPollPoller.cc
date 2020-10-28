@@ -62,12 +62,14 @@ Timestamp EPollPoller::poll(int timeoutMs, ChannelList* activeChannels)
                                timeoutMs);
   int savedErrno = errno;
   Timestamp now(Timestamp::now());
-  if (numEvents > 0)
+  if (numEvents > 0) // 返回个数大于0
   {
     LOG_TRACE << numEvents << " events happened";
+    // 填充activeChannels
     fillActiveChannels(numEvents, activeChannels);
     if (implicit_cast<size_t>(numEvents) == events_.size())
     {
+        // 扩容
       events_.resize(events_.size()*2);
     }
   }
@@ -93,14 +95,15 @@ void EPollPoller::fillActiveChannels(int numEvents,
   assert(implicit_cast<size_t>(numEvents) <= events_.size());
   for (int i = 0; i < numEvents; ++i)
   {
-    Channel* channel = static_cast<Channel*>(events_[i].data.ptr);
+    Channel* channel = static_cast<Channel*>(events_[i].data.ptr); // 获取分发器channel
 #ifndef NDEBUG
-    int fd = channel->fd();
+    int fd = channel->fd(); // 获取描述符
     ChannelMap::const_iterator it = channels_.find(fd);
     assert(it != channels_.end());
     assert(it->second == channel);
 #endif
     channel->set_revents(events_[i].events);
+    // 放到数组里面
     activeChannels->push_back(channel);
   }
 }
@@ -114,6 +117,7 @@ void EPollPoller::updateChannel(Channel* channel)
   if (index == kNew || index == kDeleted)
   {
     // a new one, add with EPOLL_CTL_ADD
+    // 一个新创建的分发器
     int fd = channel->fd();
     if (index == kNew)
     {
@@ -132,6 +136,7 @@ void EPollPoller::updateChannel(Channel* channel)
   else
   {
     // update existing one with EPOLL_CTL_MOD/DEL
+    // 更新已存在的事件
     int fd = channel->fd();
     (void)fd;
     assert(channels_.find(fd) != channels_.end());
@@ -149,6 +154,7 @@ void EPollPoller::updateChannel(Channel* channel)
   }
 }
 
+// 移除分发器Channel
 void EPollPoller::removeChannel(Channel* channel)
 {
   Poller::assertInLoopThread();
@@ -174,7 +180,9 @@ void EPollPoller::update(int operation, Channel* channel)
 {
   struct epoll_event event;
   memZero(&event, sizeof event);
-  event.events = channel->events();
+//   需要处理的事件
+  event.events = channel->events(); 
+//   自定的数据
   event.data.ptr = channel;
   int fd = channel->fd();
   LOG_TRACE << "epoll_ctl op = " << operationToString(operation)

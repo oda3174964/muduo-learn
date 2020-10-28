@@ -50,6 +50,7 @@ void Connector::startInLoop()
   assert(state_ == kDisconnected);
   if (connect_)
   {
+    //   连接
     connect();
   }
   else
@@ -98,7 +99,7 @@ void Connector::connect()
     case EADDRNOTAVAIL:
     case ECONNREFUSED:
     case ENETUNREACH:
-      retry(sockfd);
+      retry(sockfd); // 连接失败，尝试重连
       break;
 
     case EACCES:
@@ -181,7 +182,7 @@ void Connector::handleWrite()
                << err << " " << strerror_tl(err);
       retry(sockfd);
     }
-    else if (sockets::isSelfConnect(sockfd))
+    else if (sockets::isSelfConnect(sockfd))  // 是不是自己连接自己
     {
       LOG_WARN << "Connector::handleWrite - Self connect";
       retry(sockfd);
@@ -213,9 +214,11 @@ void Connector::handleError()
   LOG_ERROR << "Connector::handleError state=" << state_;
   if (state_ == kConnecting)
   {
+    // 从poll中移除关注
     int sockfd = removeAndResetChannel();
     int err = sockets::getSocketError(sockfd);
     LOG_TRACE << "SO_ERROR = " << err << " " << strerror_tl(err);
+    // 尝试重连
     retry(sockfd);
   }
 }
@@ -223,7 +226,9 @@ void Connector::handleError()
 // 重连
 void Connector::retry(int sockfd)
 {
+    // 首先关闭socket
   sockets::close(sockfd);
+//   设置状态断开连接
   setState(kDisconnected);
   if (connect_)
   {

@@ -100,11 +100,11 @@ class Channel : noncopyable
   std::weak_ptr<void> tie_;
   bool tied_;
   bool eventHandling_; //事件处理
-  bool addedToLoop_;
-  ReadEventCallback readCallback_;
-  EventCallback writeCallback_;
-  EventCallback closeCallback_;
-  EventCallback errorCallback_;
+  bool addedToLoop_; // 是否添加到loop处理
+  ReadEventCallback readCallback_; // 读事件回调
+  EventCallback writeCallback_; // 写事件回调
+  EventCallback closeCallback_; // 关闭回调
+  EventCallback errorCallback_; // 错误回调
 };
 
 }  // namespace net
